@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aks.newsapp.model.News
+import com.aks.newsapp.modal.News
 import com.aks.newsapp.utils.API_KEY
 import com.aks.newsapp.utils.NewsService
 import kotlinx.coroutines.launch

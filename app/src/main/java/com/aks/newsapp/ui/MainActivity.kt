@@ -17,19 +17,23 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aks.newsapp.adapter.NewsAdapter
 import com.aks.newsapp.databinding.ActivityMainBinding
-import com.aks.newsapp.model.Article
+import com.aks.newsapp.modal.Article
+import com.aks.newsapp.modal.DataSource
 import com.aks.newsapp.viewmodel.NewsViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import me.bush.translator.Language
 import java.util.*
 
+
 private const val PERMISSION_REQUEST_ACCESS_CODE = 100
+
 
 class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
     private lateinit var binding : ActivityMainBinding
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var newsViewModel: NewsViewModel
-    var data = MutableLiveData<List<Article>>()
+    private var data = MutableLiveData<List<Article>>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -38,22 +42,36 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
         //create an instance of fused location provider client
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
-        getCurrentLocation()
+        val language = getRegionalLanguage()
 
         binding.newsList.layoutManager = LinearLayoutManager(this)
 
 
         newsViewModel = ViewModelProvider(this)[NewsViewModel::class.java]
 
+//        Log.d("location", "CURRENT - $state")
+
+
+
+
+
         newsViewModel.article.observe(this) {
             data.value = it.articles
-            binding.newsList.adapter = NewsAdapter(data, this)
+            binding.newsList.adapter = NewsAdapter(this, data, language)
         }
 
     }
 
+    private fun getRegionalLanguage() : Language {
+        val state = getCurrentLocation()
+        Log.d("location", "CURRENT - $state")
+        val map = DataSource().loadLanguage()
+        return map[state]!!
+    }
+
     //function to get the current location of the user
-    private fun getCurrentLocation() {
+    private fun getCurrentLocation() : String {
+        var state = "Kerala"
         //check if user gave the permission to access the location
         if(checkPermission()){
             //check if user has disabled the location
@@ -72,14 +90,15 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
                             "Location fetched successfully",
                             Toast.LENGTH_SHORT)
                             .show()
-
-                        val city = getCity(location.latitude, location.longitude)
-                        val country = getCountry(location.latitude, location.longitude)
-
-                        Log.d("location", "Latitude : ${location.latitude}")
-                        Log.d("location", "Longitude : ${location.longitude}")
-                        Log.d("location", "City : $city")
-                        Log.d("location", "Country : $country")
+                        state = getState(location.latitude, location.longitude)
+//
+//                        val city = getCity(location.latitude, location.longitude)
+//                        val country = getCountry(location.latitude, location.longitude)
+//                        Log.d("location", "Latitude : ${location.latitude}")
+//                        Log.d("location", "Longitude : ${location.longitude}")
+//                        Log.d("location", "City : $city")
+//                        Log.d("location", "Country : $country")
+                        Log.d("location", "State : $state")
                     }
                 }
             }
@@ -94,6 +113,15 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
             //request the permission
             requestPermission()
         }
+        Log.d("location before return", "State : $state")
+        return state
+    }
+
+    //function to get the city name
+    private fun getState(lat : Double, long : Double) : String {
+        val geocoder = Geocoder(this, Locale.getDefault())
+        val address = geocoder.getFromLocation(lat, long, 1)
+        return address[0].adminArea
     }
 
     //function to get the city name

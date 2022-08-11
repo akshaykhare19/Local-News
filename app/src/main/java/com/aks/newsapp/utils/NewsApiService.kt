@@ -1,6 +1,6 @@
 package com.aks.newsapp.utils
 
-import com.aks.newsapp.model.News
+import com.aks.newsapp.modal.News
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET

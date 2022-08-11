@@ -1,4 +1,4 @@
-package com.aks.newsapp.model
+package com.aks.newsapp.modal
 
 data class News(
     val articles : List<Article>
