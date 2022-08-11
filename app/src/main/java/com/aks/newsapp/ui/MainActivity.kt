@@ -30,10 +30,12 @@ private const val PERMISSION_REQUEST_ACCESS_CODE = 100
 
 
 class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
+
     private lateinit var binding : ActivityMainBinding
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var newsViewModel: NewsViewModel
     private var data = MutableLiveData<List<Article>>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -42,17 +44,14 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
         //create an instance of fused location provider client
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
+        getCurrentLocation()
+
         val language = getRegionalLanguage()
 
         binding.newsList.layoutManager = LinearLayoutManager(this)
 
 
         newsViewModel = ViewModelProvider(this)[NewsViewModel::class.java]
-
-//        Log.d("location", "CURRENT - $state")
-
-
-
 
 
         newsViewModel.article.observe(this) {
@@ -63,19 +62,20 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
     }
 
     private fun getRegionalLanguage() : Language {
-        val state = getCurrentLocation()
-        Log.d("location", "CURRENT - $state")
+        Log.d("location", "CURRENT - ${binding.hiddenState.text}")
         val map = DataSource().loadLanguage()
-        return map[state]!!
+        return map[binding.hiddenState.text]!!
     }
 
     //function to get the current location of the user
-    private fun getCurrentLocation() : String {
-        var state = "Kerala"
+    private fun getCurrentLocation() {
+
         //check if user gave the permission to access the location
         if(checkPermission()){
+
             //check if user has disabled the location
             if(isLocationEnabled()){
+
                 //get the location
                 fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) { task ->
                     val location : Location? = task.result
@@ -90,21 +90,17 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
                             "Location fetched successfully",
                             Toast.LENGTH_SHORT)
                             .show()
-                        state = getState(location.latitude, location.longitude)
-//
-//                        val city = getCity(location.latitude, location.longitude)
-//                        val country = getCountry(location.latitude, location.longitude)
-//                        Log.d("location", "Latitude : ${location.latitude}")
-//                        Log.d("location", "Longitude : ${location.longitude}")
-//                        Log.d("location", "City : $city")
-//                        Log.d("location", "Country : $country")
-                        Log.d("location", "State : $state")
+
+                        val state = getState(location.latitude, location.longitude)
+                        binding.hiddenState.text = state
+
                     }
                 }
+
             }
             else{
                 //go to settings to enable the location
-                Toast.makeText(this, "Turn of the location", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Turn on the location", Toast.LENGTH_SHORT).show()
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 startActivity(intent)
             }
@@ -113,8 +109,7 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
             //request the permission
             requestPermission()
         }
-        Log.d("location before return", "State : $state")
-        return state
+
     }
 
     //function to get the city name
@@ -122,20 +117,6 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
         val geocoder = Geocoder(this, Locale.getDefault())
         val address = geocoder.getFromLocation(lat, long, 1)
         return address[0].adminArea
-    }
-
-    //function to get the city name
-    private fun getCity(lat : Double, long : Double) : String {
-        val geocoder = Geocoder(this, Locale.getDefault())
-        val address = geocoder.getFromLocation(lat, long, 1)
-        return address[0].locality
-    }
-
-    //function to get the country name
-    private fun getCountry(lat : Double, long : Double) : String {
-        val geocoder = Geocoder(this, Locale.getDefault())
-        val address = geocoder.getFromLocation(lat, long, 1)
-        return address[0].countryName
     }
 
     //function to request permission
