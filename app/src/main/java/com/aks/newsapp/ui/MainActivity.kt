@@ -17,7 +17,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aks.newsapp.adapter.NewsAdapter
 import com.aks.newsapp.databinding.ActivityMainBinding
-import com.aks.newsapp.model.ArticlesItem
+import com.aks.newsapp.model.Article
 import com.aks.newsapp.viewmodel.NewsViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
     private lateinit var binding : ActivityMainBinding
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var newsViewModel: NewsViewModel
-    var data = MutableLiveData<List<ArticlesItem>>()
+    var data = MutableLiveData<List<Article>>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -157,8 +157,8 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
         }
     }
 
-    override fun onArticleClicked(item: ArticlesItem) {
-        Toast.makeText(this, item.headline, Toast.LENGTH_SHORT).show()
+    override fun onArticleClicked(item: Article) {
+        Toast.makeText(this, item.title, Toast.LENGTH_SHORT).show()
 
     }
 }

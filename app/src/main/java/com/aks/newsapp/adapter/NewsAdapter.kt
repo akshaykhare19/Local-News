@@ -5,11 +5,11 @@ import android.view.ViewGroup
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.aks.newsapp.databinding.ListItemBinding
-import com.aks.newsapp.model.ArticlesItem
+import com.aks.newsapp.model.Article
 import com.bumptech.glide.Glide
 
 class NewsAdapter(
-    private val articles : LiveData<List<ArticlesItem>>,
+    private val newsArticles : LiveData<List<Article>>,
     private val listener : NewsArticleClicked
 ) : RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
 
@@ -19,7 +19,7 @@ class NewsAdapter(
     }
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
-        val currentItem = articles.value!![position]
+        val currentItem = newsArticles.value!![position]
         holder.bindData(currentItem)
 
         holder.itemView.setOnClickListener {
@@ -28,21 +28,21 @@ class NewsAdapter(
     }
 
     override fun getItemCount(): Int {
-        return articles.value!!.size
+        return newsArticles.value!!.size
     }
 
     class NewsViewHolder(private val binding: ListItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bindData(item : ArticlesItem){
-            binding.itemHeadline.text = item.headline
-            binding.itemDate.text = item.postedDate
+        fun bindData(item : Article){
+            binding.itemHeadline.text = item.title
+            binding.itemAuthor.text = item.author
 
-            Glide.with(this.itemView.context).load(item.imageUrl).into(binding.itemImage)
+            Glide.with(this.itemView.context).load(item.urlToImage).into(binding.itemImage)
         }
     }
 
     interface NewsArticleClicked {
-        fun onArticleClicked(item: ArticlesItem)
+        fun onArticleClicked(item: Article)
     }
 
 }

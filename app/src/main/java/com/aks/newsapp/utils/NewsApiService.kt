@@ -1,19 +1,22 @@
 package com.aks.newsapp.utils
 
-import com.aks.newsapp.model.NewsItem
+import com.aks.newsapp.model.News
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-private const val BASE_URL = "https://ndtvnews-api.herokuapp.com"
+//https://newsapi.org/v2/top-headlines?country=in&apiKey=236fd80af9c24ab5b18dd50d7f4d6d7d
+const val BASE_URL = "https://newsapi.org/v2/"
+const val API_KEY = "236fd80af9c24ab5b18dd50d7f4d6d7d"
 
 interface NewsApiService {
 
-    @GET("/cities")
+    @GET("top-headlines")
     suspend fun getNews(
-        @Query("city") city : String
-    ) : NewsItem
+        @Query("country") country: String,
+        @Query("apiKey") apiKey: String
+    ) : News
 }
 
 object NewsService {

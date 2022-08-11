@@ -32,7 +32,7 @@
             android:textSize="15sp" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/item_date"
+            android:id="@+id/item_author"
             android:layout_width="match_parent"
             android:layout_height="20dp"
             android:layout_marginStart="10dp"
