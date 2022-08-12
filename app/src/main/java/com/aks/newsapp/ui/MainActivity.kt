@@ -22,6 +22,7 @@ import com.aks.newsapp.modal.DataSource
 import com.aks.newsapp.viewmodel.NewsViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.*
 import me.bush.translator.Language
 import java.util.*
 
@@ -35,7 +36,8 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var newsViewModel: NewsViewModel
     private var data = MutableLiveData<List<Article>>()
-
+    private lateinit var language: Language
+    private var state = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -44,9 +46,12 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
         //create an instance of fused location provider client
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
-        getCurrentLocation()
+        getCurrentLocation()    //func definition at line 79
 
-        val language = getRegionalLanguage()
+        Log.d("location", "CURRENT state - $state")
+
+        language = getRegionalLanguage(state)   //func definition at line 70;;; 'state' came from line 103
+
 
         binding.newsList.layoutManager = LinearLayoutManager(this)
 
@@ -59,12 +64,15 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
             binding.newsList.adapter = NewsAdapter(this, data, language)
         }
 
+
     }
 
-    private fun getRegionalLanguage() : Language {
-        Log.d("location", "CURRENT - ${binding.hiddenState.text}")
+    private fun getRegionalLanguage(state : String) : Language {
+        Log.d("location", "CURRENT - $state")
         val map = DataSource().loadLanguage()
-        return map[binding.hiddenState.text]!!
+        if(map.containsKey(state))
+            return map[state]!!
+        return Language.ENGLISH
     }
 
     //function to get the current location of the user
@@ -91,12 +99,12 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
                             Toast.LENGTH_SHORT)
                             .show()
 
-                        val state = getState(location.latitude, location.longitude)
+                        //need this state at line no. 53, in getRegionalLanguage()
+                        state = getState(location.latitude, location.longitude)
                         binding.hiddenState.text = state
-
+                        Log.d("location", "in - $state")
                     }
                 }
-
             }
             else{
                 //go to settings to enable the location
@@ -109,7 +117,6 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
             //request the permission
             requestPermission()
         }
-
     }
 
     //function to get the city name
