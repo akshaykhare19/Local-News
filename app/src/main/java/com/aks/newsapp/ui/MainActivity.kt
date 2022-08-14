@@ -6,11 +6,13 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
@@ -36,7 +38,7 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
     private lateinit var newsViewModel: NewsViewModel
     private var data = MutableLiveData<List<Article>>()
     private lateinit var language: Language
-    private var state = ""
+    private var state = "Delhi"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -173,7 +175,9 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
     }
 
     override fun onArticleClicked(item: Article) {
-        Toast.makeText(this, item.title, Toast.LENGTH_SHORT).show()
+        val builder = CustomTabsIntent.Builder()
+        val customTabsIntent : CustomTabsIntent = builder.build()
+        customTabsIntent.launchUrl(this, Uri.parse(item.url))
 
     }
 }
