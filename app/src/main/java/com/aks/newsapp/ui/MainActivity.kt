@@ -1,5 +1,6 @@
 package com.aks.newsapp.ui
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -21,6 +22,7 @@ import com.aks.newsapp.adapter.NewsAdapter
 import com.aks.newsapp.databinding.ActivityMainBinding
 import com.aks.newsapp.modal.Article
 import com.aks.newsapp.modal.DataSource
+import com.aks.newsapp.utils.PermissionUtils
 import com.aks.newsapp.viewmodel.NewsViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -67,6 +69,25 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
 
     }
 
+    override fun onStart() {
+        super.onStart()
+        when {
+            PermissionUtils.checkPermission(this) -> {
+                when {
+                    PermissionUtils.isLocationEnabled(this) -> {
+                        getCurrentLocation()
+                    }
+                    else -> {
+                        Toast.makeText(this, "Location disabled!!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            else -> {
+                PermissionUtils.requestPermission(this, PERMISSION_REQUEST_ACCESS_CODE)
+            }
+        }
+    }
+
     private fun getRegionalLanguage(state : String) : Language {
         Log.d("location", "CURRENT - $state")
         val map = DataSource().loadLanguage()
@@ -75,48 +96,38 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
         return Language.ENGLISH
     }
 
-
     //function to get the current location of the user
     private fun getCurrentLocation() {
-
-        //check if user gave the permission to access the location
-        if(checkPermission()){
-
-            //check if user has disabled the location
-            if(isLocationEnabled()){
-
-                //get the location
-                fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) { task ->
-                    val location : Location? = task.result
-                    if(location==null) Toast.makeText(
-                        this,
-                        "Unable to fetch location",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    else {
-                        Toast.makeText(this,
-                            "Location fetched successfully",
-                            Toast.LENGTH_SHORT)
-                            .show()
-
-                        //need this state at line no. 51, in getRegionalLanguage()
-                        state = getState(location.latitude, location.longitude)
-                        binding.hiddenState.text = state
-                        Log.d("location", "in - $state")
-                    }
-                }
-            }
-            else{
-                //go to settings to enable the location
-                Toast.makeText(this, "Turn on the location", Toast.LENGTH_SHORT).show()
-                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                startActivity(intent)
-            }
+        //get the location
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
         }
-        else{
-            //request the permission
-            requestPermission()
+        fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) { task ->
+            val location : Location? = task.result
+            if(location==null) Toast.makeText(
+                this,
+                "Unable to fetch location",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            else {
+                Toast.makeText(this,
+                    "Location fetched successfully",
+                    Toast.LENGTH_SHORT)
+                    .show()
+
+                //need this state at line no. 51, in getRegionalLanguage()
+                state = getState(location.latitude, location.longitude)
+                binding.hiddenState.text = state
+                Log.d("location", "in - $state")
+            }
         }
     }
 
@@ -125,34 +136,6 @@ class MainActivity : AppCompatActivity(), NewsAdapter.NewsArticleClicked {
         val geocoder = Geocoder(this, Locale.getDefault())
         val address = geocoder.getFromLocation(lat, long, 1)
         return address[0].adminArea
-    }
-
-    //function to request permission
-    private fun requestPermission() {
-        ActivityCompat.requestPermissions(this,
-            arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION),
-                PERMISSION_REQUEST_ACCESS_CODE)
-    }
-
-
-    //function to check if the permission is granted or not
-    private fun checkPermission() : Boolean {
-        if(ActivityCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED
-            && ActivityCompat.checkSelfPermission(this,
-            android.Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED) return true
-
-        return false
-    }
-
-    //there are two ways to get the location
-    //one is using the gps and other is to use the network
-    //if any one of them is enabled, return true
-    private fun isLocationEnabled() : Boolean {
-        val locationManager : LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     //what to do if user gives permission
